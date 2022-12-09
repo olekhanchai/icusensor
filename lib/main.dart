@@ -1,4 +1,5 @@
 import 'package:icusensor/constants.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:icusensor/controllers/MenuController.dart';
 import 'package:icusensor/screens/main/main_screen.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,10 @@ import 'package:mysql_client/mysql_client.dart';
 //import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'firebase_options.dart';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:icusensor/themes.dart';
 import 'package:icusensor/utils/user_preferences.dart';
 
@@ -18,6 +21,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   await SystemChrome.setPreferredOrientations([

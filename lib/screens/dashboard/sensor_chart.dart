@@ -6,6 +6,7 @@ import 'package:icusensor/widget/appbar_widget.dart';
 import 'package:icusensor/widget/button_widget.dart';
 import '../../constants.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:icusensor/events/UartValues.dart';
 
 class SensorsChart extends StatefulWidget {
   SensorsChart({
