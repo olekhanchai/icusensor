@@ -1,0 +1,820 @@
+// package com.main.icusensor;
+
+// import io.flutter.embedding.android.FlutterActivity;
+
+// import android.content.BroadcastReceiver;
+// import android.content.Context;
+// import android.content.ContextWrapper;
+// import android.content.Intent;
+// import android.content.IntentFilter;
+// import android.os.BatteryManager;
+// import android.os.Build.VERSION;
+// import android.os.Build.VERSION_CODES;
+// import android.os.Bundle; 
+// import android.os.Handler;
+// import android.os.HandlerThread;
+// import androidx.annotation.NonNull;
+// import io.flutter.embedding.android.FlutterActivity;
+// import io.flutter.embedding.engine.FlutterEngine;
+// import io.flutter.plugin.common.EventChannel;
+// import io.flutter.plugin.common.EventChannel.EventSink;
+// import io.flutter.plugin.common.EventChannel.StreamHandler;
+// import io.flutter.plugin.common.MethodChannel;
+// import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
+// import io.flutter.plugin.common.MethodChannel.Result;
+// import io.flutter.plugin.common.MethodCall;
+// import io.flutter.plugins.GeneratedPluginRegistrant;
+
+// import org.json.JSONArray;
+// import org.json.JSONObject;
+// import org.json.JSONException;
+
+// import java.io.File;
+// import java.io.FileNotFoundException;
+// import java.lang.reflect.Method;
+// import java.io.IOException;
+// import java.io.UnsupportedEncodingException;
+// import java.nio.charset.StandardCharsets;
+// import java.util.ArrayList;
+// import java.util.Collections;
+// import java.util.HashMap;
+// import java.util.Iterator;
+// import java.util.List;
+// import java.util.ListIterator;
+// import java.util.Map;
+// import java.util.Objects;
+
+// import android.util.Log;
+
+// import com.google.android.things.pio.PeripheralManager;
+// import com.google.android.things.pio.UartDevice;
+// import com.google.android.things.pio.UartDeviceCallback;
+
+// import java.util.Arrays;
+// import java.util.List;
+
+// import java.util.regex.Matcher;
+// import java.util.regex.Pattern;
+
+// public class MainActivity extends FlutterActivity {
+
+ 
+// private static final String THINGSCALLBACK_CHANNEL = "icusensor.odroidm1.io/thingscallback";
+// private static final String THINGSIO_CHANNEL = "icusensor.odroidm1.io/thingsio";
+
+// final String TAG = "UartExample";
+ 
+// PeripheralManager manager;
+// UartDevice uart;
+// UartDeviceCallback callback ; 
+// private HandlerThread uartBackGround ;
+// private Handler uartHandelr ;
+
+// private int count = 512;
+// private int icount = 0;  
+// private String decodeString  ;
+// HashMap<String, String> retData ;
+// HashMap<String, String> retError ;
+// private boolean newSend ;
+// private boolean isCallback ;
+//   @Override
+//   public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
+//     super.configureFlutterEngine(flutterEngine);
+    
+//     retError = new HashMap<String, String>();
+//     retData = new HashMap<String, String>();
+//     initMap();
+
+//     newSend = false;
+//     isCallback =false;
+
+//     uartBackGround = new HandlerThread("UartBackground");
+//     uartBackGround.start();
+//     uartHandelr = new Handler(uartBackGround.getLooper());
+
+//     //--get Peripheral Manager for managing the gpio.
+//     manager = PeripheralManager.getInstance();
+//     //-- get available uart pin list.
+//     //-- each uart name is UART-# number. 
+   
+//     List<String> uartList = manager.getUartDeviceList();
+
+//     try {         
+//             // uart = manager.openUartDevice(uartList.get(0));
+//             uart = manager.openUartDevice("UART-1");
+//             uart.setBaudrate(115200);
+//             uart.setDataSize(8);
+//             uart.setParity(UartDevice.PARITY_NONE);
+//             uart.setStopBits(1);
+//             uart.setHardwareFlowControl(UartDevice.HW_FLOW_CONTROL_NONE);
+            
+//     } 
+//     catch (Exception exception) {
+//         exception.printStackTrace();
+//     }
+
+//     new EventChannel(flutterEngine.getDartExecutor(), THINGSCALLBACK_CHANNEL).setStreamHandler(
+//         new StreamHandler() {   
+//             @Override
+//             public void onListen(Object arguments, EventSink events) {    
+                  
+//                    callback = new UartDeviceCallback() {
+//                     @Override
+//                     public boolean onUartDeviceDataAvailable(UartDevice uartDevice) {
+                  
+//                         byte[] buff = new byte[count];  
+//                          try {  
+//                             int length = uartDevice.read(buff, buff.length);  
+//                             if (length > 0) {
+//                                 final String retString = new String(buff, 0, length, "UTF-8");    
+//                                // Log.d("onUart", "msg - " + retString);
+//                                 ////-------------------------------------- 
+//                                  processString(retString);
+//                                 // Log.d(TAG, "MESSAGE return start: " );
+//                                     ////-------------------------------------------------
+//                                 if (newSend){
+//                                     newSend = false; 
+//                                 }
+//                                 else
+//                                 { 
+//                                     runOnUiThread(new Runnable() {
+//                                         @Override
+//                                         public void run() { 
+//                                         events.success(retData); 
+//                                         // Log.d(TAG, "MESSAGE return done: " );
+//                                         }
+//                                     });
+//                                 }
+                                
+//                             }
+//                         } catch (IOException e) {
+//                             events.error("Callback", "Uart io unavailable", -1);                           
+//                             e.printStackTrace();
+//                         } catch (Exception e) {
+//                             events.error("Callback", "Uart status unavailable", -1);
+//                             e.printStackTrace(); 
+//                         } 
+//                         return true;             
+//                     }
+                   
+//                     @Override
+//                     public void onUartDeviceError(UartDevice uart, int error) {
+//                         Log.d("Callback",": Error event ");
+//                         runOnUiThread(new Runnable() {
+//                             @Override
+//                             public void run() { 
+//                                 events.error("Callback", "onUartDeviceError", -1);
+//                                 }
+//                             });  
+//                     }
+//                 };
+//                 try { 
+//                     uart.registerUartDeviceCallback(uartHandelr, callback);
+//                     //uart.registerUartDeviceCallback(callback);
+//                     Log.d("UartDeviceCallback", "onListen start "); 
+//                     isCallback = true;  
+//                 } catch (Exception e) {
+//                     e.printStackTrace();
+//                 } 
+               
+//             }
+
+//             @Override
+//             public void onCancel(Object arguments) {
+//                 isCallback = false;
+//                 try {
+//                 uart.unregisterUartDeviceCallback(callback);  
+//                 Log.d("UartDeviceCallback", "onListen stop " );  
+//                 } catch (Exception e) {
+//                     e.printStackTrace();
+//                 }
+//             }
+//         }
+//         );
+
+
+//     new MethodChannel(flutterEngine.getDartExecutor(), THINGSIO_CHANNEL).setMethodCallHandler(
+//         new MethodCallHandler() {
+//             @Override
+//             public void onMethodCall(MethodCall call, Result result) {
+//                 if (call.method.equals("UartSendRecieve")) {  
+//                     newSend = true;
+//                     String msgSend =  call.arguments(); 
+//                     //Log.d("UartSend", "msg - " + msgSend); 
+//                     if (isCallback)
+//                     {
+//                         try {
+//                             uart.unregisterUartDeviceCallback(callback);  
+//                         } catch (Exception e) {
+//                             e.printStackTrace();
+//                         }
+//                     }
+                    
+//                   try {  
+//                       byte[] msgByte = msgSend.getBytes("UTF-8");   
+//                       uart.write(msgByte, msgByte.length); 
+//                       uart.flush(UartDevice.FLUSH_IN_OUT);  
+//                   } catch (IOException e) {
+//                       e.printStackTrace();
+//                       result.error("ERR_CODE_PARAMETER", "ERR_MSG_PARAMETER", retError);
+//                   }
+
+//                   Handler handler = new Handler();
+//                     handler.postDelayed(new Runnable() {
+//                         public void run() {
+//                             final byte[] buff = new byte[count];
+//                             try {
+//                                 int length = uart.read(buff, buff.length);
+//                                 if (length > 0) { 
+//                                   final String retString = new String(buff, 0, length, "UTF-8");    
+//                                  //  Log.d("onUart", "msg - " + retString);
+//                                    ////--------------------------------------
+//                                    processString(retString);
+//                                   // Log.d(TAG, "MESSAGE return start: " );
+//                                    ////------------------------------------------------- 
+//                                      runOnUiThread(new Runnable() {
+//                                         @Override
+//                                         public void run() { 
+//                                              result.success(retData); 
+//                                         }
+//                                     });
+//                                 }
+//                                 // else
+//                                 // {
+//                                 //   runOnUiThread(new Runnable() {
+//                                 //       @Override
+//                                 //       public void run() { 
+//                                 //           result.error("UartSendRecieve", "ERR_MSG_IO", retError);
+//                                 //       }
+//                                 //   });
+//                                 //}
+//                             } catch (IOException e) {
+//                                 e.printStackTrace();
+//                                 result.error("UartSendRecieve", "ERR_MSG_IO", retError);
+//                             } catch (Exception e) {
+//                                 e.printStackTrace();
+//                                 result.error("UartSendRecieve", "ERR_MSG_PARAMETER", retError);
+//                             }
+//                    }
+//                    }, 100); 
+//                     if (isCallback)
+//                     {
+//                         try {
+//                             uart.registerUartDeviceCallback(uartHandelr, callback);
+//                            //uart.registerUartDeviceCallback(callback); 
+//                           } catch (Exception e) {
+//                               e.printStackTrace();
+//                           }
+//                     } 
+//                    newSend = false;
+//                 } 
+//                 else if (call.method.equals("UartSend")) { 
+//                     newSend = true;
+//                 String msgSend =  call.arguments(); 
+//                 //Log.d("UartSend", "msg - " + msgSend); 
+//                 if (isCallback)
+//                 {
+//                 try {
+//                     uart.unregisterUartDeviceCallback(callback);     
+//                    Log.d("UartSend", "onListen start ");   
+//                 } catch (Exception e) {
+//                     e.printStackTrace();
+//                 }     
+//                  }         
+//                 try {  
+//                     byte[] msgByte = msgSend.getBytes("UTF-8");
+//                     uart.write(msgByte, msgByte.length);   
+//                     runOnUiThread(new Runnable() {
+//                         @Override
+//                         public void run() { 
+//                             result.success(0);
+//                         }
+//                     });                     
+
+//                   } catch (IOException e) {
+//                       e.printStackTrace();
+//                       result.error("UartSend", "ERR_MSG_IO", retError); 
+//                   }catch (Exception e) {
+//                     e.printStackTrace();
+//                     result.error("UartSend", "ERR_MSG_PARAMETER", retError); 
+//                 }
+//                 if (isCallback)
+//                 {
+//                   try {
+//                     uart.registerUartDeviceCallback(uartHandelr, callback);
+//                    //uart.registerUartDeviceCallback(callback);
+//                    Log.d("UartSend", "onListen start ");   
+//                   } catch (Exception e) {
+//                       e.printStackTrace();
+//                   }
+//                 }
+//                   newSend = false;
+//                 }
+//                 else {
+//                     result.notImplemented();
+//                 }
+//             }
+//         }
+
+        
+//    );
+//   }
+
+//     private void initMap(){
+
+//         retError.put("Error", "1"); 
+        
+//         retData.put("Error", "0");
+//         retData.put("GainTemp", "0");
+//         retData.put("OffsetTemp", "0");
+//         retData.put("GainO2", "0");
+//         retData.put("OffsetO2", "0");
+//         retData.put("GainCo2", "0");
+//         retData.put("OffsetCo2", "0");
+//         retData.put("GainHumi", "0");
+//         retData.put("OffsetHumi", "0");
+//         retData.put("ValTemp","0");
+//         retData.put("TargetTemp", "0");
+//         retData.put("HysteresisTemp", "0");
+//         retData.put("ValO2", "0");
+//         retData.put("TargetO2", "0");
+//         retData.put("HysteresisO2", "0");
+//         retData.put("ValCo2", "0");
+//         retData.put("TargetCo2", "0");
+//         retData.put("HysteresisCo2", "0");
+//         retData.put("ValHumi", "0");
+//         retData.put("TargetHumi", "0");
+//         retData.put("HysteresisHumi", "0");
+//         retData.put("ConStateTemp", "0");
+//         retData.put("ConTimerTemp", "0");
+//         retData.put("ConMode1Temp", "0");
+//         retData.put("ConMode2Temp", "0");
+//         retData.put("ConElapsTemp", "0");
+//         retData.put("ConSfPwmTemp", "0");
+//         retData.put("ConInvTemp", "0");
+//         retData.put("ConStateO2", "0");
+//         retData.put("ConTimerO2", "0");
+//         retData.put("ConMode1O2", "0");
+//         retData.put("ConMode2O2", "0");
+//         retData.put("ConElapsO2", "0");
+//         retData.put("ConSfPwmO2", "0");
+//         retData.put("ConInvO2", "0");
+//         retData.put("ConStateCo2", "0");
+//         retData.put("ConTimerCo2", "0");
+//         retData.put("ConMode1Co2", "0");
+//         retData.put("ConMode2Co2", "0");
+//         retData.put("ConElapsCo2", "0");
+//         retData.put("ConSfPwmCo2", "0");
+//         retData.put("ConInvCo2", "0");
+//         retData.put("ConStateHumi", "0");
+//         retData.put("ConTimerHumi", "0");
+//         retData.put("ConMode1Humi", "0");
+//         retData.put("ConMode2Humi", "0");
+//         retData.put("ConElapsHumi", "0");
+//         retData.put("ConSfPwmHumi", "0");
+//         retData.put("ConInvHumi", "0");
+//         retData.put("ConStateLight", "0");
+//         retData.put("ConTimerLight","0");
+//         retData.put("ConMode1Light", "0");
+//         retData.put("ConMode2Light", "0");
+//         retData.put("ConElapsLight", "0");
+//         retData.put("ConStateUvc", "0");
+//         retData.put("ConTimerUvc", "0");
+//         retData.put("ConMode1Uvc", "0");
+//         retData.put("ConMode2Uvc", "0");
+//         retData.put("ConElapsUvc", "0");
+//         retData.put("ConStateNebu", "0");
+//         retData.put("ConTimerNebu", "0");
+//         retData.put("ConMode1Nebu", "0");
+//         retData.put("ConMode2Nebu", "0");
+//         retData.put("ConElapsNebu", "0"); 
+//         retData.put("ConStateIron", "0");
+//         retData.put("ConTimerIron", "0");
+//         retData.put("ConMode1Iron", "0");
+//         retData.put("ConMode2Iron", "0");
+//         retData.put("ConElapsIron", "0");
+//         retData.put("RgbRed", "0");
+//         retData.put("RgbGreen","0");
+//         retData.put("RgbBlue", "0");
+//         retData.put("RgbBright", "0");
+//         retData.put("FanTemp", "0");
+//         retData.put("FanO2", "0");
+//         retData.put("FanHumi", "0");
+//         retData.put("DatatimeYear", "0");
+//         retData.put("DatatimeMonth", "0");
+//         retData.put("DatatimeDay", "0");
+//         retData.put("DatatimeHour", "0");
+//         retData.put("DatatimeMinite", "0");
+//         retData.put("DatatimeSeconde", "0");
+//         retData.put("IDatatimeYear", "0");
+//         retData.put("IDatatimeMonth", "0");
+//         retData.put("IDatatimeDay", "0");
+//         retData.put("IDatatimeHour", "0");
+//         retData.put("IDatatimeMinite", "0");
+//         retData.put("IDatatimeSeconde", "0");
+//         retData.put("Thermal0", "0");
+//         retData.put("Thermal1", "0");
+//         retData.put("Thermal2","0");
+//         retData.put("Thermal3","0");
+//     }
+
+//     private void processString(String retString ){
+//     String[] messages = retString.split("\n");
+//     for (int i =0 ; i< messages.length; i++) {
+//         final String message = messages[i];
+
+//         if (message.toLowerCase().startsWith("ok")) {
+//             //  EventBus.getDefault().post(new GrblOkEvent(message));
+
+//         } else if (message.startsWith("report:")) {
+//             Pattern workPattern = Pattern.compile("(report:)(\\d*)");
+//             Matcher matcher = workPattern.matcher(message);
+//             if (matcher.find()) {
+//                 // int state  = Integer.parseInt(matcher.group(2));v
+//                 // decodeString += "[" + state + "][" + timer + "][" + mode1 + "][" + mode2 + "]["+ elaps + "]"; 
+//                 Log.d(TAG, "START REPORT : " + matcher.group(2));
+//             }
+//         }else if (Pattern.compile("^<GAINOFFSET.*>$").matcher(message).find()) {
+//             decodeString = "";
+//             Boolean hasOverrides = false;
+//             Boolean enabledPinsChanged = false;
+//             Boolean accessoryStatesChanged = false;
+
+//             for (String part : message.substring(0, message.length() - 1).split("\\|")) {
+
+//                 if (part.startsWith("<GAINOFFSET")) {
+//                     int idx = part.indexOf(':');
+//                     // machineStatus.setState((idx == -1) ? part.substring(1) : part.substring(1, idx));
+//                 } else if (part.startsWith("TEMP:")) {
+//                     Pattern machinePattern = Pattern.compile("(TEMP:)(-?\\d*\\..\\d*),(\\d*\\..\\d*)");
+//                     Matcher matcher = machinePattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // double gain  = Double.parseDouble(matcher.group(2));
+//                         // double offset = Double.parseDouble(matcher.group(3));
+//                         // decodeString += "[" + gain + "][" + offset + "]";
+//                         retData.put("GainTemp", matcher.group(2));
+//                         retData.put("OffsetTemp", matcher.group(3));
+                        
+//                     }
+//                 } else if (part.startsWith("O2:")) {
+//                     Pattern workPattern = Pattern.compile("(O2:)(-?\\d*\\.\\d*),(-?\\d*\\.\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // double gain  = Double.parseDouble(matcher.group(2));
+//                         // double offset = Double.parseDouble(matcher.group(3));
+//                         // decodeString += "[" + gain + "][" + offset + "]";
+//                         retData.put("GainO2", matcher.group(2));
+//                         retData.put("OffsetO2", matcher.group(3));
+//                     }
+//                 } else if (part.startsWith("CO2:")) {
+//                     Pattern workPattern = Pattern.compile("(CO2:)(-?\\d*\\.\\d*),(-?\\d*\\.\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // double gain  = Double.parseDouble(matcher.group(2));
+//                         // double offset = Double.parseDouble(matcher.group(3));
+//                         // decodeString += "[" + gain + "][" + offset + "]";
+//                         retData.put("GainCo2", matcher.group(2));
+//                         retData.put("OffsetCo2", matcher.group(3));
+//                     }
+//                 } else if (part.startsWith("HUMI:")) {
+//                     Pattern workPattern = Pattern.compile("(HUMI:)(-?\\d*\\.\\d*),(-?\\d*\\.\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // double gain  = Double.parseDouble(matcher.group(2));
+//                         // double offset = Double.parseDouble(matcher.group(3));
+//                         // decodeString += "[" + gain + "][" + offset + "]";
+//                         retData.put("GainHumi", matcher.group(2));
+//                         retData.put("OffsetHumi", matcher.group(3));
+//                     }
+//                 }
+//             }
+//         }  else if (Pattern.compile("^<VALTARGET.*>$").matcher(message).find()) {
+//             decodeString = "";
+//             Boolean hasOverrides = false;
+//             Boolean enabledPinsChanged = false;
+//             Boolean accessoryStatesChanged = false;
+
+//             for (String part : message.substring(0, message.length() - 1).split("\\|")) {
+
+//                 if (part.startsWith("<VALTARGET")) {
+//                     int idx = part.indexOf(':');
+//                     // machineStatus.setState((idx == -1) ? part.substring(1) : part.substring(1, idx));
+//                 } else if (part.startsWith("TEMP:")) {
+//                     Pattern machinePattern = Pattern.compile("(TEMP:)(-?\\d*\\..\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = machinePattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // double val  = Double.parseDouble(matcher.group(2));
+//                         // double target = Double.parseDouble(matcher.group(3));
+//                         // decodeString += "[" + val + "][" + target + "]";
+//                         retData.put("ValTemp", matcher.group(2));
+//                         retData.put("TargetTemp", matcher.group(3));
+//                         retData.put("HysteresisTemp", matcher.group(4));
+//                     }
+//                 } else if (part.startsWith("O2:")) {
+//                     Pattern workPattern = Pattern.compile("(O2:)(-?\\d*\\.\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // double val  = Double.parseDouble(matcher.group(2));
+//                         // double target = Double.parseDouble(matcher.group(3));
+//                         // decodeString += "[" + val + "][" + target + "]";
+//                         retData.put("ValO2", matcher.group(2));
+//                         retData.put("TargetO2", matcher.group(3));
+//                         retData.put("HysteresisO2", matcher.group(4));
+//                     }
+//                 } else if (part.startsWith("CO2:")) {
+//                     Pattern workPattern = Pattern.compile("(CO2:)(-?\\d*\\.\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // double val  = Double.parseDouble(matcher.group(2));
+//                         // double target = Double.parseDouble(matcher.group(3));
+//                         // decodeString += "[" + val + "][" + target + "]";
+//                         retData.put("ValCo2", matcher.group(2));
+//                         retData.put("TargetCo2", matcher.group(3));
+//                         retData.put("HysteresisCo2", matcher.group(4));
+//                     }
+//                 } else if (part.startsWith("HUMI:")) {
+//                     Pattern workPattern = Pattern.compile("(HUMI:)(-?\\d*\\.\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // double val  = Double.parseDouble(matcher.group(2));
+//                         // double target = Double.parseDouble(matcher.group(3));
+//                         // decodeString += "[" + val + "][" + target + "]";
+//                         retData.put("ValHumi", matcher.group(2));
+//                         retData.put("TargetHumi", matcher.group(3));
+//                         retData.put("HysteresisHumi", matcher.group(4));
+//                     }
+//                 }
+//             }
+//         } else if (Pattern.compile("^<VALCONFIG.*>$").matcher(message).find()) {
+//             decodeString ="";
+//             Boolean hasOverrides = false;
+//             Boolean enabledPinsChanged = false;
+//             Boolean accessoryStatesChanged = false;
+
+//             for (String part : message.substring(0, message.length() - 1).split("\\|")) {
+
+//                 if (part.startsWith("<VALCONFIG")) {
+//                     int idx = part.indexOf(':');
+//                     // machineStatus.setState((idx == -1) ? part.substring(1) : part.substring(1, idx));
+//                 } else if (part.startsWith("TEMP:")) {
+//                     Pattern machinePattern = Pattern.compile("(TEMP:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = machinePattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // int state  = Integer.parseInt(matcher.group(2));
+//                         // int timer = Integer.parseInt(matcher.group(3));
+//                         // int mode1  = Integer.parseInt(matcher.group(4));
+//                         // int mode2 = Integer.parseInt(matcher.group(5));
+//                         // int elaps  = Integer.parseInt(matcher.group(6));
+//                         // decodeString += "[" + state + "][" + timer + "][" + mode1 + "][" + mode2 + "]["+ elaps + "]";
+//                         retData.put("ConStateTemp", matcher.group(2));
+//                         retData.put("ConTimerTemp", matcher.group(3));
+//                         retData.put("ConMode1Temp", matcher.group(4));
+//                         retData.put("ConMode2Temp", matcher.group(5));
+//                         retData.put("ConElapsTemp", matcher.group(6));
+//                         retData.put("ConSfPwmTemp", matcher.group(7));
+//                         retData.put("ConInvTemp", matcher.group(8));
+//                     }
+//                 } else if (part.startsWith("O2:")) {
+//                     Pattern workPattern = Pattern.compile("(O2:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // int state  = Integer.parseInt(matcher.group(2));
+//                         // int timer = Integer.parseInt(matcher.group(3));
+//                         // int mode1  = Integer.parseInt(matcher.group(4));
+//                         // int mode2 = Integer.parseInt(matcher.group(5));
+//                         // int elaps  = Integer.parseInt(matcher.group(6));
+//                         // decodeString += "[" + state + "][" + timer + "][" + mode1 + "][" + mode2 + "]["+ elaps + "]";
+//                         retData.put("ConStateO2", matcher.group(2));
+//                         retData.put("ConTimerO2", matcher.group(3));
+//                         retData.put("ConMode1O2", matcher.group(4));
+//                         retData.put("ConMode2O2", matcher.group(5));
+//                         retData.put("ConElapsO2", matcher.group(6));
+//                         retData.put("ConSfPwmO2", matcher.group(7));
+//                         retData.put("ConInvO2", matcher.group(8));
+//                     }
+//                 } else if (part.startsWith("CO2:")) {
+//                     Pattern workPattern = Pattern.compile("(CO2:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // int state  = Integer.parseInt(matcher.group(2));
+//                         // int timer = Integer.parseInt(matcher.group(3));
+//                         // int mode1  = Integer.parseInt(matcher.group(4));
+//                         // int mode2 = Integer.parseInt(matcher.group(5));
+//                         // int elaps  = Integer.parseInt(matcher.group(6));
+//                         // decodeString += "[" + state + "][" + timer + "][" + mode1 + "][" + mode2 + "]["+ elaps + "]";
+//                         retData.put("ConStateCo2", matcher.group(2));
+//                         retData.put("ConTimerCo2", matcher.group(3));
+//                         retData.put("ConMode1Co2", matcher.group(4));
+//                         retData.put("ConMode2Co2", matcher.group(5));
+//                         retData.put("ConElapsCo2", matcher.group(6));
+//                         retData.put("ConSfPwmCo2", matcher.group(7));
+//                         retData.put("ConInvCo2", matcher.group(8));
+//                     }
+//                 } else if (part.startsWith("HUMI:")) {
+//                     Pattern workPattern = Pattern.compile("(HUMI:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // int state  = Integer.parseInt(matcher.group(2));
+//                         // int timer = Integer.parseInt(matcher.group(3));
+//                         // int mode1  = Integer.parseInt(matcher.group(4));
+//                         // int mode2 = Integer.parseInt(matcher.group(5));
+//                         // int elaps  = Integer.parseInt(matcher.group(6));
+//                         // decodeString += "[" + state + "][" + timer + "][" + mode1 + "][" + mode2 + "]["+ elaps + "]";
+//                         retData.put("ConStateHumi", matcher.group(2));
+//                         retData.put("ConTimerHumi", matcher.group(3));
+//                         retData.put("ConMode1Humi", matcher.group(4));
+//                         retData.put("ConMode2Humi", matcher.group(5));
+//                         retData.put("ConElapsHumi", matcher.group(6));
+//                         retData.put("ConSfPwmHumi", matcher.group(7));
+//                         retData.put("ConInvHumi", matcher.group(8));
+//                     }
+//                 }
+//             }
+//         }else if (Pattern.compile("^<MODUCONFIG.*>$").matcher(message).find()) {
+//             decodeString  = "";
+//             Boolean hasOverrides = false;
+//             Boolean enabledPinsChanged = false;
+//             Boolean accessoryStatesChanged = false;
+
+//             for (String part : message.substring(0, message.length() - 1).split("\\|")) {
+
+//                 if (part.startsWith("<MODUCONFIG")) {
+//                     int idx = part.indexOf(':');
+//                     // machineStatus.setState((idx == -1) ? part.substring(1) : part.substring(1, idx));
+//                 } else if (part.startsWith("LIGHT:")) {
+//                     Pattern machinePattern = Pattern.compile("(LIGHT:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = machinePattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // int state  = Integer.parseInt(matcher.group(2));
+//                         // int timer = Integer.parseInt(matcher.group(3));
+//                         // int mode1  = Integer.parseInt(matcher.group(4));
+//                         // int mode2 = Integer.parseInt(matcher.group(5));
+//                         // int elaps  = Integer.parseInt(matcher.group(6));
+//                         // decodeString += "[" + state + "][" + timer + "][" + mode1 + "][" + mode2 + "]["+ elaps + "]";
+//                         retData.put("ConStateLight", matcher.group(2));
+//                         retData.put("ConTimerLight", matcher.group(3));
+//                         retData.put("ConMode1Light", matcher.group(4));
+//                         retData.put("ConMode2Light", matcher.group(5));
+//                         retData.put("ConElapsLight", matcher.group(6));
+//                     }
+//                 } else if (part.startsWith("UVC:")) {
+//                     Pattern workPattern = Pattern.compile("(UVC:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // int state  = Integer.parseInt(matcher.group(2));
+//                         // int timer = Integer.parseInt(matcher.group(3));
+//                         // int mode1  = Integer.parseInt(matcher.group(4));
+//                         // int mode2 = Integer.parseInt(matcher.group(5));
+//                         // int elaps  = Integer.parseInt(matcher.group(6));
+//                         // decodeString += "[" + state + "][" + timer + "][" + mode1 + "][" + mode2 + "]["+ elaps + "]";
+//                         retData.put("ConStateUvc", matcher.group(2));
+//                         retData.put("ConTimerUvc", matcher.group(3));
+//                         retData.put("ConMode1Uvc", matcher.group(4));
+//                         retData.put("ConMode2Uvc", matcher.group(5));
+//                         retData.put("ConElapsUvc", matcher.group(6));
+//                     }
+//                 } else if (part.startsWith("NEBU:")) {
+//                     Pattern workPattern = Pattern.compile("(NEBU:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // int state  = Integer.parseInt(matcher.group(2));
+//                         // int timer = Integer.parseInt(matcher.group(3));
+//                         // int mode1  = Integer.parseInt(matcher.group(4));
+//                         // int mode2 = Integer.parseInt(matcher.group(5));
+//                         // int elaps  = Integer.parseInt(matcher.group(6));
+//                         // decodeString += "[" + state + "][" + timer + "][" + mode1 + "][" + mode2 + "]["+ elaps + "]";
+//                         retData.put("ConStateNebu", matcher.group(2));
+//                         retData.put("ConTimerNebu", matcher.group(3));
+//                         retData.put("ConMode1Nebu", matcher.group(4));
+//                         retData.put("ConMode2Nebu", matcher.group(5));
+//                         retData.put("ConElapsNebu", matcher.group(6)); 
+//                     }
+//                 } else if (part.startsWith("IRON:")) {
+//                     Pattern workPattern = Pattern.compile("(IRON:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//                     Matcher matcher = workPattern.matcher(part);
+//                     if (matcher.find()) {
+//                         // int state  = Integer.parseInt(matcher.group(2));
+//                         // int timer = Integer.parseInt(matcher.group(3));
+//                         // int mode1  = Integer.parseInt(matcher.group(4));
+//                         // int mode2 = Integer.parseInt(matcher.group(5));
+//                         // int elaps  = Integer.parseInt(matcher.group(6));
+//                         // decodeString += "[" + state + "][" + timer + "][" + mode1 + "][" + mode2 + "]["+ elaps + "]";
+//                         retData.put("ConStateIron", matcher.group(2));
+//                         retData.put("ConTimerIron", matcher.group(3));
+//                         retData.put("ConMode1Iron", matcher.group(4));
+//                         retData.put("ConMode2Iron", matcher.group(5));
+//                         retData.put("ConElapsIron", matcher.group(6));
+//                     }
+//                 }
+//             }
+//         }else if (Pattern.compile("^<RGB.*>$").matcher(message).find()) {
+//             decodeString  = "";
+//             Pattern workPattern = Pattern.compile("(<RGB:)(\\d*),(\\d*),(\\d*),(\\d*)");
+//             Matcher matcher = workPattern.matcher(message);
+//             if (matcher.find()) {
+//                 //     int r  = Integer.parseInt(matcher.group(2));
+//                 //     int g = Integer.parseInt(matcher.group(3));
+//                 //     int b  = Integer.parseInt(matcher.group(4));
+//                 //    // int w = Integer.parseInt(matcher.group(5));
+//                 //     decodeString += "[" + r + "][" + g + "][" + b + "]";
+//                 retData.put("RgbRed", matcher.group(2));
+//                 retData.put("RgbGreen", matcher.group(3));
+//                 retData.put("RgbBlue", matcher.group(4));
+//                 retData.put("RgbBright", matcher.group(5));
+//             }
+
+//         }else if (Pattern.compile("^<FANSPEED.*>$").matcher(message).find()) {
+//             decodeString = "";
+//             Pattern workPattern = Pattern.compile("(<FANSPEED:)(\\d*),(\\d*),(\\d*)");
+//             Matcher matcher = workPattern.matcher(message);
+//             if (matcher.find()) {
+//                 // int sp1  = Integer.parseInt(matcher.group(2));
+//                 // int sp2 = Integer.parseInt(matcher.group(3));
+//                 // int sp3  = Integer.parseInt(matcher.group(4));
+//                 // decodeString += "[" + sp1 + "][" + sp2+ "][" + sp3 + "]";
+//                 retData.put("FanTemp", matcher.group(2));
+//                 retData.put("FanO2", matcher.group(3));
+//                 retData.put("FanHumi", matcher.group(4));
+//             }
+
+//         } else if (Pattern.compile("^<EDATETIME.*>$").matcher(message).find()) {
+//             decodeString = "";
+//             Pattern workPattern = Pattern.compile("(<DATETIME:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//             Matcher matcher = workPattern.matcher(message);
+//             if (matcher.find()) {
+//                 // int y  = Integer.parseInt(matcher.group(2));
+//                 // int m = Integer.parseInt(matcher.group(3));
+//                 // int d  = Integer.parseInt(matcher.group(4));
+//                 // int hh  = Integer.parseInt(matcher.group(5));
+//                 // int mm = Integer.parseInt(matcher.group(6));
+//                 // int ss  = Integer.parseInt(matcher.group(7));
+//                 // decodeString += "[" + y + "][" + m + "][" + d + "][" + hh + "]["+ mm + "]["+ ss + "]";
+//                 retData.put("DatatimeYear", matcher.group(2));
+//                 retData.put("DatatimeMonth", matcher.group(3));
+//                 retData.put("DatatimeDay", matcher.group(4));
+//                 retData.put("DatatimeHour", matcher.group(5));
+//                 retData.put("DatatimeMinite", matcher.group(6));
+//                 retData.put("DatatimeSeconde", matcher.group(7));
+//             }
+
+//         } else if (Pattern.compile("^<IDATETIME.*>$").matcher(message).find()) {
+//             decodeString = "";
+//             Pattern workPattern = Pattern.compile("(<DATETIME:)(\\d*),(\\d*),(\\d*),(\\d*),(\\d*),(\\d*)");
+//             Matcher matcher = workPattern.matcher(message);
+//             if (matcher.find()) {
+//                 // int y  = Integer.parseInt(matcher.group(2));
+//                 // int m = Integer.parseInt(matcher.group(3));
+//                 // int d  = Integer.parseInt(matcher.group(4));
+//                 // int hh  = Integer.parseInt(matcher.group(5));
+//                 // int mm = Integer.parseInt(matcher.group(6));
+//                 // int ss  = Integer.parseInt(matcher.group(7));
+//                 // decodeString += "[" + y + "][" + m + "][" + d + "][" + hh + "]["+ mm + "]["+ ss + "]";
+//                 retData.put("IDatatimeYear", matcher.group(2));
+//                 retData.put("IDatatimeMonth", matcher.group(3));
+//                 retData.put("IDatatimeDay", matcher.group(4));
+//                 retData.put("IDatatimeHour", matcher.group(5));
+//                 retData.put("IDatatimeMinite", matcher.group(6));
+//                 retData.put("IDatatimeSeconde", matcher.group(7));
+//             }
+
+//         }else if (Pattern.compile("^<THERMAL.*>$").matcher(message).find()) {
+//             decodeString = "";
+//             Pattern workPattern = Pattern.compile("(<THERMAL:)(-?\\d*\\..\\d*),(-?\\d*\\..\\d*),(-?\\d*\\..\\d*),(-?\\d*\\..\\d*)");
+//             Matcher matcher = workPattern.matcher(message);
+//             if (matcher.find()) {
+//                 // double sp1  = Double.parseInt(matcher.group(2));
+//                 // double sp2 = Double.parseInt(matcher.group(3));
+//                 // double sp3  = Double.parseInt(matcher.group(4));
+//                 // double sp4  = Double.parseInt(matcher.group(5));
+//                 // decodeString += "[" + sp1 + "][" + sp2+ "][" + sp3 + "][" + sp4 + "]";
+//                 retData.put("Thermal0", matcher.group(2));
+//                 retData.put("Thermal1", matcher.group(3));
+//                 retData.put("Thermal2", matcher.group(4));
+//                 retData.put("Thermal3", matcher.group(5));
+//             }
+
+//         } else if (message.toLowerCase().startsWith("alarm:")) {
+//             // GrblAlarmEvent alarmEvent = new GrblAlarmEvent(GrblAlarms, message);
+//             // machineStatus.setState(MachineStatusListener.STATE_ALARM);
+//             // EventBus.getDefault().post(alarmEvent);
+//             // EventBus.getDefault().post(new UiToastEvent(alarmEvent.getAlarmDescription())); 
+//         } else if (message.toLowerCase().startsWith("error:")) {
+//             // GrblErrorEvent errorEvent = new GrblErrorEvent(GrblErrors, message);
+//             // EventBus.getDefault().post(errorEvent);
+//             // EventBus.getDefault().post(new UiToastEvent(errorEvent.getErrorDescription()));
+
+//         } else if (message.toLowerCase().startsWith("infor:")) {
+//             Log.d(TAG, "MESSAGE INFORMATION: " + message);
+
+//         }  else {
+//             // EventBus.getDefault().post(new ConsoleMessageEvent(message));
+//             Log.d(TAG, "MESSAGE NOT HANDLED: " + message);
+//         }
+//     }
+
+//    }
+ 
+// }
+
+ 
+ 
