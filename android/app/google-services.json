@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1042218634267",
+    "project_id": "icusensor-8b5b4",
+    "storage_bucket": "icusensor-8b5b4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1042218634267:android:b0f8698459486ec1eafcbe",
+        "android_client_info": {
+          "package_name": "com.main.icusensor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1042218634267-uiua9o8jplc7boe5dor4bpbnalfg22tu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIEu5SyR6BrD0F8R2KLiHQ6v_VxneNklE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1042218634267-uiua9o8jplc7boe5dor4bpbnalfg22tu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1042218634267-i9u812nrnk9v8iahrejck6ctsoums6r4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.main.icusensor"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
