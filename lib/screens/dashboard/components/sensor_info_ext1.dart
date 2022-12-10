@@ -6,13 +6,17 @@ import 'package:flutter/material.dart';
 class SensorInfoExternal1 extends StatefulWidget {
   const SensorInfoExternal1(
       {Key? key,
-      //required this.device,
+       required this.deviceName,
+    required this.deviceId,
+    required this.deviceType,
       required this.onValueChanged,
       required this.onClick})
       : super(key: key);
 
   final ValueChanged<SensorExtChanged> onValueChanged;
-  //final BluetoothDevice device;
+   final String deviceName;
+  final String deviceId;
+  final int deviceType;
   final VoidCallback onClick;
  
   @override

@@ -35,34 +35,6 @@ void main() async {
   await UserPreferences.init();
   await BluetoothPreferences.init();
 
-  final conn = await MySQLConnection.createConnection(
-      host: "127.0.0.1",
-      port: 3306,
-      userName: "admin",
-      password: "admin",
-      databaseName: "test", // optional
-  );
-
-  await conn.connect();
-
-  print("Connected");
-
-
-  // Insert some data
-  var result = await conn.execute(
-      'insert into users (name, email, address) values (:name, :email, :address)',
-      {
-      "name": "ole",
-      "email": "olekhanchai@gmail.com",
-      "address": "1234567890"
-    },
-  );
-  print(result.affectedRows);
-
-
-  // Finally, close the connection
-  await conn.close();  
-
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,
     overlays: [

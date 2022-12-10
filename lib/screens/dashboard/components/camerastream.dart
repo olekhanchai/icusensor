@@ -20,7 +20,7 @@ class CameraStream extends StatefulWidget {
   final bool isFullScreen;
   VoidCallback? onClick;
 
-  const CameraStream({Key? key}) : super(key: key);
+  //const CameraStream({Key? key}) : super(key: key);
   @override
   State<CameraStream> createState() => _CameraStreamState();
 }

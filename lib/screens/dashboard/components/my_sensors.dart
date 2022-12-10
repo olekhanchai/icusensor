@@ -1,4 +1,4 @@
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+ 
 import 'package:icusensor/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:icusensor/models/MyFiles.dart';
@@ -12,7 +12,9 @@ class MySensor extends StatelessWidget {
     Key? key,
     required this.data,
     required this.onStatesChanged,
-    required this.extdevice,
+    required this.extdeviceName,
+    required this.extdeviceId,
+    required this.extdeviceType,
     required this.extonValueChanged,
     required this.extonClick,
   }) : super(key: key);
@@ -20,7 +22,10 @@ class MySensor extends StatelessWidget {
   final List<CloudSensorInfo> data;
   final ValueChanged<SensorStateChanged> onStatesChanged;
 
-  final BluetoothDevice extdevice;
+ 
+  final String extdeviceName;
+  final String extdeviceId;
+  final int extdeviceType;
   final ValueChanged<SensorExtChanged> extonValueChanged;
   final VoidCallback extonClick;
 
@@ -57,14 +62,18 @@ class MySensor extends StatelessWidget {
             childAspectRatio: size.width < 650 ? 1.4 : 0.8,
             data: data,
             onStatesChanged: onStatesChanged,
-            extdevice: extdevice,
+            extdeviceName: extdeviceName,
+            extdeviceId: extdeviceId,
+            extdeviceType: extdeviceType,
             extonValueChanged: extonValueChanged,
             extonClick: extonClick,
           ),
           tablet: FileInfoCardGridView(
             data: data,
             onStatesChanged: onStatesChanged,
-            extdevice: extdevice,
+           extdeviceName: extdeviceName,
+            extdeviceId: extdeviceId,
+            extdeviceType: extdeviceType,
             extonValueChanged: extonValueChanged,
             extonClick: extonClick,
           ),
@@ -72,7 +81,9 @@ class MySensor extends StatelessWidget {
             childAspectRatio: size.width < 1400 ? 1.1 : 1.4,
             data: data,
             onStatesChanged: onStatesChanged,
-            extdevice: extdevice,
+            extdeviceName: extdeviceName,
+            extdeviceId: extdeviceId,
+            extdeviceType: extdeviceType,
             extonValueChanged: extonValueChanged,
             extonClick: extonClick,
           ),
@@ -89,7 +100,9 @@ class FileInfoCardGridView extends StatelessWidget {
     this.childAspectRatio = 0.75,
     required this.data,
     required this.onStatesChanged,
-    required this.extdevice,
+    required this.extdeviceName,
+    required this.extdeviceId,
+    required this.extdeviceType,
     required this.extonValueChanged,
     required this.extonClick,
   }) : super(key: key);
@@ -99,7 +112,9 @@ class FileInfoCardGridView extends StatelessWidget {
   final List<CloudSensorInfo> data;
   final ValueChanged<SensorStateChanged> onStatesChanged;
 
-  final BluetoothDevice extdevice;
+   final String extdeviceName;
+  final String extdeviceId;
+  final int extdeviceType;
   final ValueChanged<SensorExtChanged> extonValueChanged;
   final VoidCallback extonClick;
 
@@ -109,6 +124,7 @@ class FileInfoCardGridView extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: data.length + 1,
+    //  itemCount: data.length ,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: defaultPadding,
@@ -122,10 +138,19 @@ class FileInfoCardGridView extends StatelessWidget {
               onStatesChanged: onStatesChanged,
             )
           : SensorInfoExternal1(
-              //device: extdevice,
+              deviceName: extdeviceName,
+              deviceId: extdeviceId,
+              deviceType: extdeviceType,
               onValueChanged: extonValueChanged,
               onClick: extonClick,
             ),
+      // itemBuilder: (context, index) => 
+      //      SensorInfo(
+      //         id: index,
+      //         info: data[index],
+      //         onStatesChanged: onStatesChanged,
+      //       )
+           
     );
   }
 }
