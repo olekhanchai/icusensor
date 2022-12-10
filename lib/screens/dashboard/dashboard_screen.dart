@@ -92,6 +92,22 @@ class DashboardScreenState extends State<DashboardScreen>
   double co2Sum = 0;
   double humiditySum = 0;
  
+  double tempcurrentLevel = 25;
+  double tempcurrentTemp = 25;
+  double tempcurrentTarget = 25;
+  String tempcurrentThermals = "";
+  double tempminTarget = 18;
+  double tempmaxTarget = 45;
+  int tempFanSpeed = 1;
+  bool tempIsEnable = false;
+  bool tempMode = false;
+  bool tempUnit = false;
+  bool tempIson = false;
+  double tempGain = 0;
+  double tempOffset = 0;
+  double tempHysteresis = 0;
+  bool tempInvert = false;
+  String tempcurrentTime = "";
 
   bool isready = false;
   int callCount = 0;
@@ -146,7 +162,15 @@ class DashboardScreenState extends State<DashboardScreen>
     const FlSpot(5, 0),
     const FlSpot(6, 0),
   ];
-   
+  List<FlSpot> dataPM = [
+    const FlSpot(0, 0),
+    const FlSpot(1, 0),
+    const FlSpot(2, 0),
+    const FlSpot(3, 0),
+    const FlSpot(4, 0),
+    const FlSpot(5, 0),
+    const FlSpot(6, 0),
+  ];
 
   CloudSensorInfo o2Data = CloudSensorInfo(
     displayOnly: false,
@@ -265,6 +289,30 @@ class DashboardScreenState extends State<DashboardScreen>
 // Returns a float value (as a double) that approximates the double.
   double roundableFloat(double doubleValue, int fractionalDigits) {
     return double.parse((doubleValue).toStringAsFixed(fractionalDigits));
+
+    // var target = doubleValue.toStringAsFixed(fractionalDigits);
+    // var buffer = Float32List(1);
+    // buffer[0] = doubleValue;
+    // var rounded = buffer[0];
+    // var result = rounded.toStringAsFixed(fractionalDigits);
+    // if (result != target) {
+    //   // Assume same endianness for floats and integers.
+    //   // Not always true on ARM, so more cleverness might be needed.
+    //   buffer.buffer.asUint32List()[0] += rounded < doubleValue ? 1 : -1;
+    //   rounded = buffer[0];
+    // }
+    // return rounded;
+
+    // int 16  print(bd.getUint16(1, Endian.little)); // print the first short
+    // int 16 print(bd.getUint16(3, Endian.little)); // and the second
+    //double print(bd.getFloat32(5, Endian.little)); // and the third
+    // int stringLength = input[7]; // get the length of the string
+    // print(utf8.decode(input.sublist(8, 8 + stringLength))); // decode the string
+    // final data = [125, 29, 2, 64];
+    // final bytes = Uint8List.fromList(data);
+    // final byteData = ByteData.sublistView(bytes);
+    // double value = byteData.getFloat32(0,Endian.little);
+    // print(value); // 2.0330498218536377
   }
 
   Uint8List roundableFloatto4Byte(double doubleValue, int fractionalDigits) {
@@ -280,6 +328,176 @@ class DashboardScreenState extends State<DashboardScreen>
   double thermal1 = 0;
   double thermal2 = 0;
   double thermal3 = 0;
+  
+  
+  void getUartValue(Map data) {
+    setState(() {
+      try {
+        tempcurrentTarget = double.parse(data["TargetTemp"]);
+        tempIsEnable = int.parse(data["ConStateTemp"]) == 1 ? true : false;
+        tempMode = int.parse(data["ConMode1Temp"]) == 1 ? true : false;
+        tempUnit = int.parse(data["ConMode2Temp"]) == 1 ? true : false;
+        tempIson = int.parse(data["ConSfPwmTemp"]) > 1 ? true : false;
+        tempGain = double.parse(data["GainTemp"]);
+        tempOffset = double.parse(data["OffsetTemp"]);
+        tempHysteresis = double.parse(data["HysteresisTemp"]);
+        tempInvert = int.parse(data["ConInvTemp"]) == 1 ? true : false;
+
+        co2Data.target = double.parse(data["TargetCo2"]).toInt();
+        co2Data.timer = int.parse(data["ConTimerCo2"]);
+        co2Data.state = int.parse(data["ConStateCo2"]);
+        co2Data.elaps = int.parse(data["ConElapsCo2"]);
+        co2Data.ison = int.parse(data["ConSfPwmCo2"]) > 0 ? true : false;
+        co2Data.gain = double.parse(data["GainCo2"]);
+        co2Data.offset = double.parse(data["OffsetCo2"]);
+        co2Data.hysteresis = double.parse(data["HysteresisCo2"]);
+        co2Data.inv = int.parse(data["ConInvCo2"]) == 1 ? true : false;
+
+        humidityData.target = double.parse(data["TargetHumi"]).toInt();
+        humidityData.timer = int.parse(data["ConTimerHumi"]);
+        humidityData.state = int.parse(data["ConStateHumi"]);
+        humidityData.elaps = int.parse(data["ConElapsHumi"]);
+        humidityData.ison = int.parse(data["ConSfPwmHumi"]) > 0 ? true : false;
+        humidityData.gain = double.parse(data["GainHumi"]);
+        humidityData.offset = double.parse(data["OffsetHumi"]);
+        humidityData.hysteresis = double.parse(data["HysteresisHumi"]);
+        humidityData.inv = int.parse(data["ConInvHumi"]) == 1 ? true : false;
+
+        o2Data.target = double.parse(data["TargetO2"]).toInt();
+        o2Data.timer = int.parse(data["ConTimerO2"]);
+        o2Data.state = int.parse(data["ConStateO2"]);
+        o2Data.elaps = int.parse(data["ConElapsO2"]);
+        o2Data.ison = int.parse(data["ConSfPwmO2"]) > 0 ? true : false;
+        o2Data.gain = double.parse(data["GainO2"]);
+        o2Data.offset = double.parse(data["OffsetO2"]);
+        o2Data.hysteresis = double.parse(data["HysteresisO2"]);
+        o2Data.inv = int.parse(data["ConInvO2"]) == 1 ? true : false;
+
+        lightcolor = Color.fromRGBO(int.parse(data["RgbRed"]),
+            int.parse(data["RgbGreen"]), int.parse(data["RgbBlue"]), 1);
+        lightlevel =
+            max(0, (int.parse(data["RgbBright"]) ~/ (255 / 5) - 1).toDouble());
+        lightonoff = (int.parse(data["ConStateLight"]) > 0) ? true : false;
+        //lighttimer = int.parse(data["ConTimerLight"]);
+        lightselect[0] = (int.parse(data["ConMode1Light"]) == 0) &&
+                (int.parse(data["ConMode2Light"]) == 0)
+            ? true
+            : false;
+        lightselect[1] = (int.parse(data["ConMode1Light"]) == 1) &&
+                (int.parse(data["ConMode2Light"]) == 0)
+            ? true
+            : false;
+        lightselect[2] = (int.parse(data["ConMode1Light"]) == 1) &&
+                (int.parse(data["ConMode2Light"]) == 1)
+            ? true
+            : false;
+
+        moduleStates[0] = (int.parse(data["ConStateIron"]) == 1) ? true : false;
+        moduleStates[1] = (int.parse(data["ConStateNebu"]) == 1) ? true : false;
+        moduleStates[2] = (int.parse(data["ConStateUvc"]) == 1) ? true : false;
+        moduleStates[3] = false;
+
+        moduleTimers[0] = int.parse(data["ConTimerIron"]);
+        moduleTimers[1] = int.parse(data["ConTimerNebu"]);
+        moduleTimers[2] = int.parse(data["ConTimerUvc"]);
+        moduleTimers[3] = 0;
+
+        moduleElaps[0] = int.parse(data["ConElapsIron"]);
+        moduleElaps[1] = int.parse(data["ConElapsNebu"]);
+        moduleElaps[2] = int.parse(data["ConElapsUvc"]);
+        moduleElaps[3] = 0;
+
+        tempFanSpeed = max(0, (int.parse(data["FanTemp"]) ~/ (255 / 5)) - 1);
+        fanO2 = (int.parse(data["FanO2"]) ~/ (255 / 5));
+        fanHumi = (int.parse(data["FanHumi"]) ~/ (255 / 5));
+
+        thermal0 = roundableFloat(double.parse(data["Thermal0"]), 2);
+        thermal1 = roundableFloat(double.parse(data["Thermal1"]), 2);
+        thermal2 = roundableFloat(double.parse(data["Thermal2"]), 2);
+        thermal3 = roundableFloat(double.parse(data["Thermal3"]), 2);
+
+        if (tempMode) {
+          tempcurrentThermals = "Heater: ${thermal0.toStringAsFixed(2)}";
+        } else {
+          tempcurrentThermals =
+              "Cp: ${thermal1.toStringAsFixed(2)}  Cd: ${thermal2.toStringAsFixed(2)}  Ev:${thermal3.toStringAsFixed(2)}";
+        }
+
+        tempcurrentTemp = roundableFloat(double.parse(data["ValTemp"]), 2);
+        demoMyFiles[0].value = roundableFloat(double.parse(data["ValO2"]), 2);
+        demoMyFiles[1].value = roundableFloat(double.parse(data["ValCo2"]), 2);
+        demoMyFiles[2].value = roundableFloat(double.parse(data["ValHumi"]), 2);
+        // demoMyFiles[3].value = 50;
+
+        for (int i = 0; i < 30 - 1; i++) {
+          data0[i] = FlSpot(data0[i].x, data0[i + 1].y);
+          data1[i] = FlSpot(data1[i].x, data1[i + 1].y);
+          data2[i] = FlSpot(data2[i].x, data2[i + 1].y);
+          data3[i] = FlSpot(data3[i].x, data3[i + 1].y);
+          data4[i] = FlSpot(data4[i].x, data4[i + 1].y);
+        }
+        data0[29] = FlSpot(29, tempcurrentTemp);
+        data1[29] = FlSpot(29, demoMyFiles[0].value);
+        data2[29] = FlSpot(29, demoMyFiles[1].value);
+        data3[29] = FlSpot(29, demoMyFiles[2].value);
+        data4[29] = FlSpot(29, Random().nextDouble() * 100);
+
+        flspotvalues = FlSpotdata(
+            value0: data0,
+            value1: data1,
+            value2: data2,
+            value3: data3,
+            value4: data4);
+
+        icount++;
+
+        o2Sum += demoMyFiles[0].value;
+        co2Sum += demoMyFiles[1].value;
+        humiditySum += demoMyFiles[2].value;
+        //  dSum += demoMyFiles[3].value;
+
+        int seccount = 10;
+        if (icount > (seccount)) {
+          icount = 0;
+          dataO2 = [
+            FlSpot(0, dataO2[1].y),
+            FlSpot(1, dataO2[2].y),
+            FlSpot(2, dataO2[3].y),
+            FlSpot(3, dataO2[4].y),
+            FlSpot(4, dataO2[5].y),
+            FlSpot(5, dataO2[6].y),
+            FlSpot(6, o2Sum / seccount)
+          ];
+          o2Data.data = dataO2;
+          o2Sum = 0;
+
+          dataCo2 = [
+            FlSpot(0, dataCo2[1].y),
+            FlSpot(1, dataCo2[2].y),
+            FlSpot(2, dataCo2[3].y),
+            FlSpot(3, dataCo2[4].y),
+            FlSpot(4, dataCo2[5].y),
+            FlSpot(5, dataCo2[6].y),
+            FlSpot(6, co2Sum / seccount)
+          ];
+          co2Data.data = dataCo2;
+          co2Sum = 0;
+
+          dataHumidity = [
+            FlSpot(0, dataHumidity[1].y),
+            FlSpot(1, dataHumidity[2].y),
+            FlSpot(2, dataHumidity[3].y),
+            FlSpot(3, dataHumidity[4].y),
+            FlSpot(4, dataHumidity[5].y),
+            FlSpot(5, dataHumidity[6].y),
+            FlSpot(6, humiditySum / seccount)
+          ];
+          humidityData.data = dataHumidity;
+          humiditySum = 0;
+        }
+      } on PlatformException catch (e) {}
+    });
+  }  
 
   dynamic parseType(String input) {
     if (isNumeric(input) && input.contains(".")) {
@@ -369,48 +587,48 @@ class DashboardScreenState extends State<DashboardScreen>
   }
 
   void tempEnableChanged(bool state) {
-    setState(() => chamber.tempIsEnable = state);
-    String cmd = "D10 S${chamber.tempIsEnable ? 1 : 0}\n";
+    setState(() => tempIsEnable = state);
+    String cmd = "D10 S${tempIsEnable ? 1 : 0}\n";
     sentUartData(cmd);
   }
 
   void tempTragetTemperatureMinus(double currentTraget) {
-    if (currentTraget > chamber.tempmintarget) {
-      setState(() => chamber.temptarget = chamber.temptarget - 1.0);
-      String cmd = "C10 T${chamber.temptarget.toStringAsFixed(2)}\n";
+    if (currentTraget > tempminTarget) {
+      setState(() => tempcurrentTarget = currentTraget - 1.0);
+      String cmd = "C10 T${tempcurrentTarget.toStringAsFixed(2)}\n";
       sentUartData(cmd);
     }
   }
 
   void tempTragetTemperaturePlus(double currentTraget) {
-    if (currentTraget < chamber.tempmaxtarget) {
-      setState(() => chamber.tempmaxtarget = chamber.tempmaxtarget + 1.0);
-      String cmd = "C10 T${chamber.tempmaxtarget.toStringAsFixed(2)}\n";
+    if (currentTraget < tempmaxTarget) {
+      setState(() => tempcurrentTarget = currentTraget + 1.0);
+      String cmd = "C10 T${tempcurrentTarget.toStringAsFixed(2)}\n";
       sentUartData(cmd);
     }
   }
 
   void tempFanSpeedChanged(int level) {
-    setState(() => chamber.tempFan = level);
-    String cmd = "G10 T${((chamber.tempFan + 1) * (255 / 5)).toInt()}\n";
+    setState(() => tempFanSpeed = level);
+    String cmd = "G10 T${((tempFanSpeed + 1) * (255 / 5)).toInt()}\n";
     sentUartData(cmd);
   }
 
   void tempUnitChanged(bool state) {
-    setState(() => chamber.tempUnit = state);
-    String cmd = "D10 N${chamber.tempUnit ? 1 : 0}\n";
+    setState(() => tempUnit = state);
+    String cmd = "D10 N${tempUnit ? 1 : 0}\n";
     sentUartData(cmd);
   }
 
   void tempModeChanged(bool state) {
-    setState(() => chamber.tempmode1 == 1 ? true : false);
-    String cmd = "D10 M${chamber.tempmode1}\n";
+    setState(() => tempMode = state);
+    String cmd = "D10 M${tempMode ? 1 : 0}\n";
     sentUartData(cmd);
   }
 
   void lightset(bool onoff) {
-    setState(() => chamber.lightstate == 1 ? true : false);
-    String cmd = "E10 S${chamber.lightstate}\n";
+    setState(() => lightonoff = onoff);
+    String cmd = "E10 S${lightonoff ? 1 : 0}\n";
     sentUartData(cmd);
   }
 
@@ -594,11 +812,12 @@ class DashboardScreenState extends State<DashboardScreen>
     final String formattedDateTime =
         DateFormat('MM/dd/yyyy hh:mm:ss').format(now);
     setState(() {
-      chamber.tempcurrentTime = formattedDateTime;
+      tempcurrentTime = formattedDateTime;
     });
     if ((now.second % 2) == 0) {
       sentUartData("");
       updateioState();
+      genDataDemo(false);
     }
   }
 
@@ -718,208 +937,188 @@ class DashboardScreenState extends State<DashboardScreen>
   @override
   Widget build(BuildContext context) {
     bluetootid = BluetoothPreferences.getBluetooth();
-    return FutureBuilder(
-        future: Firebase.initializeApp(),
-        builder: ((context, snapshot) {
-          if (snapshot.hasError) {
-            return Scaffold(
-                appBar: AppBar(title: const Text("Error")),
-                body: Center(child: Text("${snapshot.error}")));
-          }
-          return SafeArea(
-            child: SingleChildScrollView(
-              //Container( //SingleChildScrollView
-              //primary: false,
-              // height: 585,
-              padding: const EdgeInsets.all(defaultPadding * 0.2),
-              child: Column(
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        //Container( //SingleChildScrollView
+        //primary: false,
+        // height: 585,
+        padding: const EdgeInsets.all(defaultPadding * 0.2),
+        child: Column(
+          children: [
+            if (screenIndex == 0)
+              Column(
                 children: [
-                  if (screenIndex == 0)
-                    Column(
-                      children: [
-                        MyBar(
-                          onScreenChanged: setScreen,
-                        ),
-                        Row(
-                          children: [
-                            // On Mobile means if the screen is less than 850 we dont want to show it
-                            if (!Responsive.isMobile(context))
-                              Expanded(
-                                  flex: 2,
-                                  child: Container(
-                                      height: 500,
-                                      // color: Colors.orange,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          TemperatureDetails(
-                                            isEnable: chamber.tempIsEnable,
-                                            currentTemperature:
-                                                chamber.tempvalue,
-                                            currentMin: 18,
-                                            currentMax: 45,
-                                            tragetTemperature:
-                                                chamber.temptarget,
-                                            cuurentTime:
-                                                chamber.tempcurrentTime,
-                                            currentFanSpeed: chamber.tempFan,
-                                            currentMode: chamber.tempIsEnable,
-                                            currentUnit: chamber.tempUnit,
-                                            currentIson: chamber.tempIsEnable,
-                                            currentThermals:
-                                                chamber.tempcurrentthermal,
-                                            onEnableChanged: tempEnableChanged,
-                                            onTragetTemperatureChangedMinus:
-                                                tempTragetTemperatureMinus,
-                                            onTragetTemperatureChangedPluse:
-                                                tempTragetTemperaturePlus,
-                                            onFanSpeedChanged:
-                                                tempFanSpeedChanged,
-                                            onModeChanged: tempModeChanged,
-                                            onUnitChanged: tempUnitChanged,
-                                          ),
-                                        ],
-                                      ))),
-                            if (!Responsive.isMobile(context))
-                              const SizedBox(width: defaultPadding),
-                            Expanded(
-                                flex: 5,
-                                child: SizedBox(
-                                  height: 500,
-                                  child: Column(
-                                    children: [
-                                       MySensor(
-                                            data: demoMyFiles,
-                                            onStatesChanged: onstatesChanged,
-                                            extdeviceId: bluetootid.id,
-                                            extdeviceName: bluetootid.name,
-                                            extdeviceType: bluetootid.type,
-                                            extonValueChanged:
-                                                bluetoothDataChange,
-                                            extonClick: bluetoothSetting,
-                                          ),
-                                      const SizedBox(height: defaultPadding),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // ignore: prefer_const_constructors
-                                          Expanded(
-                                            flex: 2,
-                                            child: //const CameraStream(),
-                                                SizedBox(
-                                              width: defaultPadding,
-                                              child: Column(
-                                                children: [
-                                                  StreamBuilder(
-                                                    stream: thingStream(),
-                                                    builder:
-                                                        ((context, snapshot) {
-                                                      if (snapshot.hasData) {
-                                                        eventBus.fire(
-                                                            UartValuesEvent(
-                                                                "${snapshot.data}"));
-                                                      }
-                                                      return const Text("");
-                                                    }),
-                                                  )
-                                                ],
-                                              ),
-                                            ), //
-                                          ),
-                                          const SizedBox(width: defaultPadding),
-                                          Expanded(
+                  MyBar(
+                    onScreenChanged: setScreen,
+                  ),
+                  Row(
+                    children: [
+                      // On Mobile means if the screen is less than 850 we dont want to show it
+                      if (!Responsive.isMobile(context))
+                        Expanded(
+                            flex: 2,
+                            child: Container(
+                                height: 500,
+                                // color: Colors.orange,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    TemperatureDetails(
+                                      isEnable: tempIsEnable,
+                                      currentTemperature: tempcurrentTemp,
+                                      currentMin: 18,
+                                      currentMax: 45,
+                                      tragetTemperature: tempcurrentTarget,
+                                      cuurentTime: tempcurrentTime,
+                                      currentFanSpeed: tempFanSpeed,
+                                      currentMode: tempMode,
+                                      currentUnit: tempUnit,
+                                      currentIson: tempIson,
+                                      currentThermals: tempcurrentThermals,
+                                      onEnableChanged: tempEnableChanged,
+                                      onTragetTemperatureChangedMinus:
+                                          tempTragetTemperatureMinus,
+                                      onTragetTemperatureChangedPluse:
+                                          tempTragetTemperaturePlus,
+                                      onFanSpeedChanged: tempFanSpeedChanged,
+                                      onModeChanged: tempModeChanged,
+                                      onUnitChanged: tempUnitChanged,
+                                    ),
+                                  ],
+                                ))),
+                      if (!Responsive.isMobile(context))
+                        const SizedBox(width: defaultPadding),
+                      Expanded(
+                          flex: 5,
+                          child: SizedBox(
+                            height: 500,
+                            // color: Colors.red,
+                            child: Column(
+                              children: [
+                                MySensor(
+                                  data: demoMyFiles,
+                                  onStatesChanged: onstatesChanged,
+                                  extdevice: BluetoothDevice.fromId(
+                                      bluetootid.id,
+                                      name: bluetootid.name,
+                                      type: BluetoothDeviceType
+                                          .values[bluetootid.type]),
+                                  extonValueChanged: bluetoothDataChange,
+                                  extonClick: bluetoothSetting,
+                                ),
+                                const SizedBox(height: defaultPadding),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 2,
+                                      child:
+                                    const  SizedBox(width:100,
+                                      height:100),
+
+                                      //  CameraStream(
+                                      //   isFullScreen: false,
+                                      //   onClick: cameraFullscreen,
+                                      // ),
+                                    ),
+                                    const SizedBox(width: defaultPadding),
+                                    Expanded(
+                                        flex: 2,
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                                flex: 1,
+                                                child: Mymodules(
+                                                  states: moduleStates,
+                                                  names: modulenames,
+                                                  timers: moduleTimers,
+                                                  elaps: moduleElaps,
+                                                  currentModule: moduleSelect,
+                                                  onStatesChanged:
+                                                      changeModuleStates,
+                                                  onTimerChanged:
+                                                      changeModuleTimers,
+                                                  onModuleChanged:
+                                                      changeModuleSelect,
+                                                )),
+                                            const SizedBox(
+                                                width: defaultPadding),
+                                            Expanded(
                                               flex: 1,
-                                              child: Mymodules(
-                                                states: moduleStates,
-                                                names: modulenames,
-                                                timers: moduleTimers,
-                                                elaps: moduleElaps,
-                                                currentModule: moduleSelect,
-                                                onStatesChanged:
-                                                    changeModuleStates,
-                                                onTimerChanged:
-                                                    changeModuleTimers,
-                                                onModuleChanged:
-                                                    changeModuleSelect,
-                                              )),
-                                          const SizedBox(width: defaultPadding),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Mylight(
-                                              onoff: lightonoff,
-                                              state: lightselect,
-                                              brightness: lightlevel,
-                                              currentColor: lightcolor,
-                                              onOnOffChanged: lightset,
-                                              onStateChanged: lightmode,
-                                              onBrightnessChanged:
-                                                  lightbrightness,
-                                              onColorChanged: lightColor,
+                                              child: Mylight(
+                                                onoff: lightonoff,
+                                                state: lightselect,
+                                                brightness: lightlevel,
+                                                currentColor: lightcolor,
+                                                onOnOffChanged: lightset,
+                                                onStateChanged: lightmode,
+                                                onBrightnessChanged:
+                                                    lightbrightness,
+                                                onColorChanged: lightColor,
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                )),
-                          ],
-                        ),
-                      ],
-                    ),
-                  if (screenIndex == 1)
-                    Column(
-                      children: [
-                        SensorsChart(
-                          name: const [
-                            "Temp",
-                            "O2",
-                            "Co2",
-                            "Humidity",
-                            "PM2.5"
-                          ],
-                          unit: const ["°C", "%", "ppm", "%", "ppm"],
-                          currentValues: [0, 0, 0, 0, 0],
-                          allValues: flspotvalues,
-                          onScreenChanged: setScreen,
-                        ),
-                      ],
-                    ),
-                  if (screenIndex == 2)
-                    Column(
-                      children: [
-                        SensorsDiagram(
-                          tempState: chamber.tempIsEnable,
-                          tempVal: chamber.tempvalue,
-                          tempUnit: chamber.tempUnit,
-                          tempMode: chamber.tempmode == 1 ? true : false,
-                          tempFan: chamber.tempFan,
-                          tempEv: thermal1,
-                          tempCd: thermal2,
-                          tempCp: thermal3,
-                          tempHt: thermal0,
-                          o2State: o2Data.state,
-                          o2Val: o2Data.value,
-                          o2Fan: fanO2,
-                          co2State: co2Data.state,
-                          co2Val: co2Data.value,
-                          huState: humidityData.state,
-                          huVal: humidityData.value,
-                          huFan: fanHumi,
-                          reState: 0,
-                          reVal: 100,
-                          onScreenChanged: setScreen,
-                        ),
-                      ],
-                    )
-                  // SizedBox(height: defaultPadding * 0.5),
+                                          ],
+                                        )),
+                                  ],
+                                )
+                              ],
+                            ),
+                          )),
+                    ],
+                  ),
                 ],
               ),
-            ),
-          );
-        }));
+            if (screenIndex == 1)
+              Column(
+                children: [
+                  SensorsChart(
+                    name: const [
+                      "Temperature",
+                      "O2",
+                      "Co2",
+                      "Humidity",
+                      "Bluetooth"
+                    ],
+                    unit: const ["°C", "%", "ppm", "%", "C"],
+                    currentValues: [0, 0, 0, 0, 0],
+                    allValues: flspotvalues,
+                    onScreenChanged: setScreen,
+                  ),
+                ],
+              ),
+            if (screenIndex == 2)
+              Column(
+                children: [
+                  SensorsDiagram(
+                    tempState: tempIsEnable,
+                    tempVal: tempcurrentTemp,
+                    tempUnit: tempUnit,
+                    tempMode: tempMode,
+                    tempFan: tempFanSpeed,
+                    tempEv: thermal1,
+                    tempCd: thermal2,
+                    tempCp: thermal3,
+                    tempHt: thermal0,
+                    o2State: o2Data.state,
+                    o2Val: o2Data.value,
+                    o2Fan: fanO2,
+                    co2State: co2Data.state,
+                    co2Val: co2Data.value,
+                    huState: humidityData.state,
+                    huVal: humidityData.value,
+                    huFan: fanHumi,
+                    reState: 0,
+                    reVal: 100,
+                    onScreenChanged: setScreen,
+                  ),
+                ],
+              )
+            // SizedBox(height: defaultPadding * 0.5),
+          ],
+        ),
+      ),
+    );
   }
 }
