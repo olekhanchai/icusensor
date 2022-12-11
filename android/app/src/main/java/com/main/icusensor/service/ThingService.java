@@ -6,28 +6,18 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.util.Log;
 import androidx.annotation.Nullable;
-
 import com.google.android.things.pio.PeripheralManager;
 import com.google.android.things.pio.UartDevice;
 import com.google.android.things.pio.UartDeviceCallback;
 import com.google.gson.Gson;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import org.greenrobot.eventbus.EventBus;
 import org.jam.ChangeInfo;
 import org.jam.Diff4J;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import io.flutter.plugin.common.EventChannel;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ThingService extends Service implements EventChannel.StreamHandler {
     final IBinder binder = new ThingBinder();
@@ -35,13 +25,14 @@ public class ThingService extends Service implements EventChannel.StreamHandler 
     String retString = "";
     String temp = "";
     String oldString = "";
+    UartDevice uart;
     static String callbackString = "";
+    static String sendString = "";
     private EventChannel.EventSink thingEventSink;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        UartDevice uart = null;
         final String TAG = ThingService.class.getSimpleName();
 
         HandlerThread uartBackGround = new HandlerThread("UartBackground");
@@ -59,44 +50,70 @@ public class ThingService extends Service implements EventChannel.StreamHandler 
             // get first available a uart.
             // in this case, UART-1 is used.
             uart = manager.openUartDevice(uartList.get(0));
-            byte[] buff = new byte[1310];
+            byte[] buff = new byte[20];
             // baudrate - 115200, 8N1, non hardware flow control
             uart.setBaudrate(115200);
             uart.setDataSize(8);
             uart.setParity(UartDevice.PARITY_NONE);
             uart.setStopBits(1);
             uart.setHardwareFlowControl(UartDevice.HW_FLOW_CONTROL_NONE);
+
+            Thread t = new Thread() {
+                public void run() {
+                    while(true) {
+                        if (!sendString.isEmpty()) {
+                            try {
+                                String msgSend = sendString;
+                                byte[] msgByte = msgSend.getBytes("UTF-8");
+                                uart.flush(UartDevice.FLUSH_IN_OUT);
+                                uart.write(msgByte, msgByte.length);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            sendString="";
+                        }
+                    }
+                }
+            };
+            t.start();
+
             callback = new UartDeviceCallback() {
                 @Override
                 public boolean onUartDeviceDataAvailable(UartDevice uartDevice) {
-
                     try {
                         temp = "";
-                        int length = uartDevice.read(buff, 1310);
+                        int length = uartDevice.read(buff, 20);
 
                         if (length > 0) {
                             temp = new String(buff, 0, length, "UTF-8");
                         }
 
-                        retString = temp;
+                        retString += temp;
+
+                        if(retString.contains("ok")) {
+                            retString = "";
+                            oldString = "";
+                            callbackString = "";
+                        }
 
                         if(retString.contains("}") && oldString.isEmpty()) {
                                 oldString = retString;
                                 retString = "";
-                        } 
+                        }
                         if(retString.contains("}") && !oldString.isEmpty()) {
                             callbackString = "";
                             temp = "{";
-                            Diff4J comparator = new Diff4J();
-                            Gson gson = new Gson();                            
-                            Collection<ChangeInfo> diffs = comparator.diff(gson.fromJson(oldString, RetData.class), gson.fromJson(retString, RetData.class));
-                            for(ChangeInfo c : diffs)
-                            {
-                                temp += "\""+c.getFieldName()+"\":\""+c.getTo()+"\",";
-                            }
+                            // Diff4J comparator = new Diff4J();
+                            // Gson gson = new Gson();
+                            // Gson gson2 = new Gson();
+                            // Collection<ChangeInfo> diffs = comparator.diff(gson.fromJson(oldString, RetData.class), gson2.fromJson(retString, RetData.class));
+                            // for(ChangeInfo c : diffs)
+                            // {
+                            //     temp += "\""+c.getFieldName()+"\":\""+c.getTo()+"\",";
+                            // }
                             temp += "\"result\":\"OK\"}";
                             callbackString = temp;
-                            oldString = "";
+                            oldString = "";              
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -110,6 +127,10 @@ public class ThingService extends Service implements EventChannel.StreamHandler 
         } catch (Exception exception) {
             exception.printStackTrace();
         }
+    }
+
+    public void sendUart(String input) {
+        sendString = input;
     }
 
     @Nullable
@@ -132,7 +153,7 @@ public class ThingService extends Service implements EventChannel.StreamHandler 
     @Override
     public void onListen(Object arguments, EventChannel.EventSink events) {
         thingEventSink = events;
-        thingEventSink.success(callbackString);
+        //thingEventSink.success(callbackString);
     }
 
     @Override

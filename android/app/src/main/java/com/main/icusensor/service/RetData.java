@@ -4,26 +4,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RetData {
-        private String GainChamber;
-        private String OffsetChamber;
-        private String GainO2;
-        private String OffsetO2;
-        private String GainCo2;
-        private String OffsetCo2;
+        private String TempGain;
+        private String TempOffset;
+        private String O2Gain;
+        private String Co2Offset;
+        private String Co2Gain;
         private String GainHumidit;
         private String OffsetHumidity;
-        private String Temp;
-        private String TargetTemp;
-        private String HystersisTemp;
-        private String O2;
-        private String TargetO2;
-        private String HystersisO2;
-        private String CO2;
-        private String TargetCO2;
-        private String HystersisCO2;
-        private String HUMI;
-        private String TargetHumi;
-        private String HystersisHumi;
+        private String TempValue;
+        private String TempTarget;
+        private String TempHystersis;
+        private String O2Value;
+        private String O2Target;
+        private String O2Hystersis;
+        private String Co2Value;
+        private String Co2Target;
+        private String Co2Hystersis;
+        private String HumiValue;
+        private String HumiTarget;
+        private String HumiHystersis;
         private String TempState;
         private String TempTimer;
         private String TempMode1;
@@ -36,32 +35,32 @@ public class RetData {
         private String O2Mode1;
         private String O2Mode2;
         private String O2Elaps;
-        private String O2PWM;
+        private String O2Pwm;
         private String O2Inverting;
-        private String CO2State;
-        private String CO2Timer;
-        private String CO2Mode1;
-        private String CO2Mode2;
-        private String CO2Elaps;
-        private String CO2PWM;
-        private String CO2Inverting;
+        private String Co2State;
+        private String Co2Timer;
+        private String Co2Mode1;
+        private String Co2Mode2;
+        private String Co2Elaps;
+        private String Co2Pwm;
+        private String Co2Inverting;
         private String HumiState;
         private String HumiTimer;
         private String HumiMode1;
         private String HumiMode2;
         private String HumiElaps;
-        private String HumiPWM;
+        private String HumiPwm;
         private String HumiInverting;
         private String LightState;
         private String LightTimer;
         private String LightMode1;
         private String LightMode2;
         private String LightElaps;
-        private String UVCState;
-        private String UVCTimer;
-        private String UVCMode1;
-        private String UVCMode2;
-        private String UVCElaps;
+        private String UvcState;
+        private String UvcTimer;
+        private String UvcMode1;
+        private String UvcMode2;
+        private String UvcElaps;
         private String NebuState;
         private String NebuTimer;
         private String NebuMode1;
@@ -75,65 +74,53 @@ public class RetData {
         private String Red;
         private String Green;
         private String Blue;
-        private String Bright;
+        private String Brightness;
         private String TempFan;
         private String O2Fan;
         private String HumiFan;
-        private String HotEnd1;
-        private String HotEnd2;
-        private String HotEnd3;
-        private String HotEnd4;
 
         public RetData(){
 
         }
 
-        public String getGainChamber() {
-                return GainChamber;
+        public String getTempGain() {
+                return TempGain;
         }
 
-        public void setGainChamber(String gainChamber) {
-                GainChamber = gainChamber;
+        public void setTempGain(String tempGain) {
+                TempGain = tempGain;
         }
 
-        public String getOffsetChamber() {
-                return OffsetChamber;
+        public String getTempOffset() {
+                return TempOffset;
         }
 
-        public void setOffsetChamber(String offsetChamber) {
-                OffsetChamber = offsetChamber;
+        public void setTempOffset(String tempOffset) {
+                TempOffset = tempOffset;
         }
 
-        public String getGainO2() {
-                return GainO2;
+        public String getO2Gain() {
+                return O2Gain;
         }
 
-        public void setGainO2(String gainO2) {
-                GainO2 = gainO2;
+        public void setO2Gain(String o2Gain) {
+                O2Gain = o2Gain;
         }
 
-        public String getOffsetO2() {
-                return OffsetO2;
+        public String getCo2Offset() {
+                return Co2Offset;
         }
 
-        public void setOffsetO2(String offsetO2) {
-                OffsetO2 = offsetO2;
+        public void setCo2Offset(String co2Offset) {
+                Co2Offset = co2Offset;
         }
 
-        public String getGainCo2() {
-                return GainCo2;
+        public String getCo2Gain() {
+                return Co2Gain;
         }
 
-        public void setGainCo2(String gainCo2) {
-                GainCo2 = gainCo2;
-        }
-
-        public String getOffsetCo2() {
-                return OffsetCo2;
-        }
-
-        public void setOffsetCo2(String offsetCo2) {
-                OffsetCo2 = offsetCo2;
+        public void setCo2Gain(String co2Gain) {
+                Co2Gain = co2Gain;
         }
 
         public String getGainHumidit() {
@@ -152,100 +139,100 @@ public class RetData {
                 OffsetHumidity = offsetHumidity;
         }
 
-        public String getTemp() {
-                return Temp;
+        public String getTempValue() {
+                return TempValue;
         }
 
-        public void setTemp(String temp) {
-                Temp = temp;
+        public void setTempValue(String tempValue) {
+                TempValue = tempValue;
         }
 
-        public String getTargetTemp() {
-                return TargetTemp;
+        public String getTempTarget() {
+                return TempTarget;
         }
 
-        public void setTargetTemp(String targetTemp) {
-                TargetTemp = targetTemp;
+        public void setTempTarget(String tempTarget) {
+                TempTarget = tempTarget;
         }
 
-        public String getHystersisTemp() {
-                return HystersisTemp;
+        public String getTempHystersis() {
+                return TempHystersis;
         }
 
-        public void setHystersisTemp(String hystersisTemp) {
-                HystersisTemp = hystersisTemp;
+        public void setTempHystersis(String tempHystersis) {
+                TempHystersis = tempHystersis;
         }
 
-        public String getO2() {
-                return O2;
+        public String getO2Value() {
+                return O2Value;
         }
 
-        public void setO2(String o2) {
-                O2 = o2;
+        public void setO2Value(String o2Value) {
+                O2Value = o2Value;
         }
 
-        public String getTargetO2() {
-                return TargetO2;
+        public String getO2Target() {
+                return O2Target;
         }
 
-        public void setTargetO2(String targetO2) {
-                TargetO2 = targetO2;
+        public void setO2Target(String o2Target) {
+                O2Target = o2Target;
         }
 
-        public String getHystersisO2() {
-                return HystersisO2;
+        public String getO2Hystersis() {
+                return O2Hystersis;
         }
 
-        public void setHystersisO2(String hystersisO2) {
-                HystersisO2 = hystersisO2;
+        public void setO2Hystersis(String o2Hystersis) {
+                O2Hystersis = o2Hystersis;
         }
 
-        public String getCO2() {
-                return CO2;
+        public String getCo2Value() {
+                return Co2Value;
         }
 
-        public void setCO2(String CO2) {
-                this.CO2 = CO2;
+        public void setCo2Value(String co2Value) {
+                Co2Value = co2Value;
         }
 
-        public String getTargetCO2() {
-                return TargetCO2;
+        public String getCo2Target() {
+                return Co2Target;
         }
 
-        public void setTargetCO2(String targetCO2) {
-                TargetCO2 = targetCO2;
+        public void setCo2Target(String co2Target) {
+                Co2Target = co2Target;
         }
 
-        public String getHystersisCO2() {
-                return HystersisCO2;
+        public String getCo2Hystersis() {
+                return Co2Hystersis;
         }
 
-        public void setHystersisCO2(String hystersisCO2) {
-                HystersisCO2 = hystersisCO2;
+        public void setCo2Hystersis(String co2Hystersis) {
+                Co2Hystersis = co2Hystersis;
         }
 
-        public String getHUMI() {
-                return HUMI;
+        public String getHumiValue() {
+                return HumiValue;
         }
 
-        public void setHUMI(String HUMI) {
-                this.HUMI = HUMI;
+        public void setHumiValue(String humiValue) {
+                HumiValue = humiValue;
         }
 
-        public String getTargetHumi() {
-                return TargetHumi;
+        public String getHumiTarget() {
+                return HumiTarget;
         }
 
-        public void setTargetHumi(String targetHumi) {
-                TargetHumi = targetHumi;
+        public void setHumiTarget(String humiTarget) {
+                HumiTarget = humiTarget;
         }
 
-        public String getHystersisHumi() {
-                return HystersisHumi;
+        public String getHumiHystersis() {
+                return HumiHystersis;
         }
 
-        public void setHystersisHumi(String hystersisHumi) {
-                HystersisHumi = hystersisHumi;
+        public void setHumiHystersis(String humiHystersis) {
+                HumiHystersis = humiHystersis;
         }
 
         public String getTempState() {
@@ -344,12 +331,12 @@ public class RetData {
                 O2Elaps = o2Elaps;
         }
 
-        public String getO2PWM() {
-                return O2PWM;
+        public String getO2Pwm() {
+                return O2Pwm;
         }
 
-        public void setO2PWM(String o2PWM) {
-                O2PWM = o2PWM;
+        public void setO2Pwm(String o2Pwm) {
+                O2Pwm = o2Pwm;
         }
 
         public String getO2Inverting() {
@@ -360,60 +347,60 @@ public class RetData {
                 O2Inverting = o2Inverting;
         }
 
-        public String getCO2State() {
-                return CO2State;
+        public String getCo2State() {
+                return Co2State;
         }
 
-        public void setCO2State(String CO2State) {
-                this.CO2State = CO2State;
+        public void setCo2State(String co2State) {
+                Co2State = co2State;
         }
 
-        public String getCO2Timer() {
-                return CO2Timer;
+        public String getCo2Timer() {
+                return Co2Timer;
         }
 
-        public void setCO2Timer(String CO2Timer) {
-                this.CO2Timer = CO2Timer;
+        public void setCo2Timer(String co2Timer) {
+                Co2Timer = co2Timer;
         }
 
-        public String getCO2Mode1() {
-                return CO2Mode1;
+        public String getCo2Mode1() {
+                return Co2Mode1;
         }
 
-        public void setCO2Mode1(String CO2Mode1) {
-                this.CO2Mode1 = CO2Mode1;
+        public void setCo2Mode1(String co2Mode1) {
+                Co2Mode1 = co2Mode1;
         }
 
-        public String getCO2Mode2() {
-                return CO2Mode2;
+        public String getCo2Mode2() {
+                return Co2Mode2;
         }
 
-        public void setCO2Mode2(String CO2Mode2) {
-                this.CO2Mode2 = CO2Mode2;
+        public void setCo2Mode2(String co2Mode2) {
+                Co2Mode2 = co2Mode2;
         }
 
-        public String getCO2Elaps() {
-                return CO2Elaps;
+        public String getCo2Elaps() {
+                return Co2Elaps;
         }
 
-        public void setCO2Elaps(String CO2Elaps) {
-                this.CO2Elaps = CO2Elaps;
+        public void setCo2Elaps(String co2Elaps) {
+                Co2Elaps = co2Elaps;
         }
 
-        public String getCO2PWM() {
-                return CO2PWM;
+        public String getCo2Pwm() {
+                return Co2Pwm;
         }
 
-        public void setCO2PWM(String CO2PWM) {
-                this.CO2PWM = CO2PWM;
+        public void setCo2Pwm(String co2Pwm) {
+                Co2Pwm = co2Pwm;
         }
 
-        public String getCO2Inverting() {
-                return CO2Inverting;
+        public String getCo2Inverting() {
+                return Co2Inverting;
         }
 
-        public void setCO2Inverting(String CO2Inverting) {
-                this.CO2Inverting = CO2Inverting;
+        public void setCo2Inverting(String co2Inverting) {
+                Co2Inverting = co2Inverting;
         }
 
         public String getHumiState() {
@@ -456,12 +443,12 @@ public class RetData {
                 HumiElaps = humiElaps;
         }
 
-        public String getHumiPWM() {
-                return HumiPWM;
+        public String getHumiPwm() {
+                return HumiPwm;
         }
 
-        public void setHumiPWM(String humiPWM) {
-                HumiPWM = humiPWM;
+        public void setHumiPwm(String humiPwm) {
+                HumiPwm = humiPwm;
         }
 
         public String getHumiInverting() {
@@ -512,44 +499,44 @@ public class RetData {
                 LightElaps = lightElaps;
         }
 
-        public String getUVCState() {
-                return UVCState;
+        public String getUvcState() {
+                return UvcState;
         }
 
-        public void setUVCState(String UVCState) {
-                this.UVCState = UVCState;
+        public void setUvcState(String uvcState) {
+                UvcState = uvcState;
         }
 
-        public String getUVCTimer() {
-                return UVCTimer;
+        public String getUvcTimer() {
+                return UvcTimer;
         }
 
-        public void setUVCTimer(String UVCTimer) {
-                this.UVCTimer = UVCTimer;
+        public void setUvcTimer(String uvcTimer) {
+                UvcTimer = uvcTimer;
         }
 
-        public String getUVCMode1() {
-                return UVCMode1;
+        public String getUvcMode1() {
+                return UvcMode1;
         }
 
-        public void setUVCMode1(String UVCMode1) {
-                this.UVCMode1 = UVCMode1;
+        public void setUvcMode1(String uvcMode1) {
+                UvcMode1 = uvcMode1;
         }
 
-        public String getUVCMode2() {
-                return UVCMode2;
+        public String getUvcMode2() {
+                return UvcMode2;
         }
 
-        public void setUVCMode2(String UVCMode2) {
-                this.UVCMode2 = UVCMode2;
+        public void setUvcMode2(String uvcMode2) {
+                UvcMode2 = uvcMode2;
         }
 
-        public String getUVCElaps() {
-                return UVCElaps;
+        public String getUvcElaps() {
+                return UvcElaps;
         }
 
-        public void setUVCElaps(String UVCElaps) {
-                this.UVCElaps = UVCElaps;
+        public void setUvcElaps(String uvcElaps) {
+                UvcElaps = uvcElaps;
         }
 
         public String getNebuState() {
@@ -656,12 +643,12 @@ public class RetData {
                 Blue = blue;
         }
 
-        public String getBright() {
-                return Bright;
+        public String getBrightness() {
+                return Brightness;
         }
 
-        public void setBright(String bright) {
-                Bright = bright;
+        public void setBrightness(String brightness) {
+                Brightness = brightness;
         }
 
         public String getTempFan() {
@@ -686,37 +673,5 @@ public class RetData {
 
         public void setHumiFan(String humiFan) {
                 HumiFan = humiFan;
-        }
-
-        public String getHotEnd1() {
-                return HotEnd1;
-        }
-
-        public void setHotEnd1(String hotEnd1) {
-                HotEnd1 = hotEnd1;
-        }
-
-        public String getHotEnd2() {
-                return HotEnd2;
-        }
-
-        public void setHotEnd2(String hotEnd2) {
-                HotEnd2 = hotEnd2;
-        }
-
-        public String getHotEnd3() {
-                return HotEnd3;
-        }
-
-        public void setHotEnd3(String hotEnd3) {
-                HotEnd3 = hotEnd3;
-        }
-
-        public String getHotEnd4() {
-                return HotEnd4;
-        }
-
-        public void setHotEnd4(String hotEnd4) {
-                HotEnd4 = hotEnd4;
         }
 }

@@ -61,8 +61,8 @@ public class MainActivity extends FlutterActivity {
     private ThingService thingService = new ThingService();
     //private PushNotificationService pushService = new PushNotificationService();
     HashMap<String, String> retError ;
-  
-  @Override
+
+    @Override
   public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
     super.configureFlutterEngine(flutterEngine); 
     retError = new HashMap<String, String>();
@@ -76,9 +76,9 @@ public class MainActivity extends FlutterActivity {
             @Override
             public void onMethodCall(MethodCall call, Result result) {
             if (call.method.equals("UartSend")) {  
-                String msgSend =  call.arguments();  
+                String msgSend =  call.arguments();
+                thingService.sendUart(msgSend);
                 try {  
-                  
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() { 
