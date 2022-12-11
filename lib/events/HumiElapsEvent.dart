@@ -1,4 +1,4 @@
- class HumiElapsEvent { 
-     String data; 
-     HumiElapsEvent(this.data); 
- } 
+class HumiElapsEvent {
+  String data;
+  HumiElapsEvent(this.data);
+}

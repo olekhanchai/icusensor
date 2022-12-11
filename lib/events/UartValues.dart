@@ -1,4 +1,4 @@
-class UartValuesEvent {
+class UartValues {
   String data;
-  UartValuesEvent(this.data);
+  UartValues(this.data);
 }
